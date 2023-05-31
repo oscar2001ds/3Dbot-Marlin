@@ -21,6 +21,16 @@ class GUI3Dbot:
         except:
             pass
 
+    def serial2Write(self, msg):
+        try:
+            self.serial_port2.write(msg)
+        except:
+            pass
+        while self.okAlertBase != True:
+            if self.stop_threads == True:
+                return
+        self.okAlertBase = False
+
     def Serial1Reader(self):
         while self.stop_threads == False:
             try:
@@ -186,6 +196,66 @@ class GUI3Dbot:
             secondWindow.title("ALERT")
             secondWindow.resizable(False, False)
             label = tk.Label(secondWindow, text="Select Port",
+                             font=("Bahnschrift Light", 12))
+            label.pack()
+
+    def switchArm(self):
+
+        if self.arm_conected == True:
+
+            if self.btn_switch_arm.cget("image") == str(self.img_boton_open29):
+                self.btn_switch_arm.config(image=self.img_boton_open30)
+                self.btn_switch_arm.config(text="On Arm")
+                txt = "on_A"
+                msg = (txt+"\n").encode()
+                mode = "Energized Arm\n"
+
+            else:
+                self.btn_switch_arm.config(image=self.img_boton_open29)
+                self.btn_switch_arm.config(text="Off Arm")
+                txt = "off_A"
+                msg = (txt+"\n").encode()
+                mode = "De-nergized Arm\n"
+
+            self.sat = threading.Thread(target=self.serial2Write, args=(msg,))
+            #sat.setDaemon(True)  # Establece el hilo como un hilo demonio
+            self.sat.start()
+            self.thread_arm_relay = True
+            self.txt_arm_terminal.insert(tk.END, mode)        
+
+        else:
+            secondWindow = tk.Toplevel(self.window)
+            secondWindow.title("ALERT")
+            secondWindow.resizable(False, False)
+            label = tk.Label(secondWindow, text="First connect arm",
+                             font=("Bahnschrift Light", 12))
+            label.pack()
+
+    def switchBase(self):
+        if self.base_conected==True:
+            if self.btn_switch_base.cget("image") == str(self.img_boton_open31):
+                self.btn_switch_base.config(image=self.img_boton_open32)
+                self.btn_switch_base.config(text="On Base")
+                txt = "on_B"
+                msg = (txt+"\n").encode()
+                mode = "Energized Base\n"
+            else:
+                self.btn_switch_base.config(image=self.img_boton_open31)
+                self.btn_switch_base.config(text="Off Base")
+                txt = "off_B"
+                msg = (txt+"\n").encode()
+                mode = "De-nergized Base\n"
+                
+            self.sbt = threading.Thread(target=self.serial2Write, args=(msg,))
+            #sbt.setDaemon(True)  # Establece el hilo como un hilo demonio
+            self.sbt.start()
+            self.thread_base_relay = True
+            self.txt_base_terminal.insert(tk.END, mode) 
+        else:
+            secondWindow = tk.Toplevel(self.window)
+            secondWindow.title("ALERT")
+            secondWindow.resizable(False, False)
+            label = tk.Label(secondWindow, text="First connect base",
                              font=("Bahnschrift Light", 12))
             label.pack()
 
@@ -925,6 +995,7 @@ class GUI3Dbot:
         self.serialWrite(msg)
 
     def emergencyStop(self):
+
         txt = "M112"
         msg = (txt+"\n").encode()
         self.serialWrite(msg)
@@ -936,10 +1007,13 @@ class GUI3Dbot:
         self.img_boton_open27 = ImageTk.PhotoImage(imagen)
         self.btn_center.config(image=self.img_boton_open27)
 
+
         if self.progress_bar.winfo_viewable():
+            self.progress.set(0)
             self.progress_bar.grid_remove()
 
         if self.labelprogress.winfo_viewable():
+            self.labelprogress.config(text=str(0)+"%")
             self.labelprogress.grid_remove()
 
         if self.hotend_thread_state == True:
@@ -1004,6 +1078,34 @@ class GUI3Dbot:
         self.labeltemp.config(text="0")
         self.btn_fan.config(relief=tk.FLAT)
         self.btn_home.config(relief=tk.FLAT)
+
+        self.btn_switch_arm.config(image=self.img_boton_open29)
+        self.btn_switch_arm.config(text="Off Arm")
+        self.btn_switch_base.config(image=self.img_boton_open31)
+        self.btn_switch_base.config(text="Off Base")
+
+        if self.thread_arm_relay == True:
+            self.thread_arm_relay = False
+            print("Apagaré relé del brazo")
+            txt = "off_A"
+            msg = (txt+"\n").encode()
+            ESAR = threading.Thread(
+                target=self.serial2Write, name="EmergencyStopArmRelay",args=(msg,))
+            ESAR.setDaemon(True)
+            ESAR.start()  
+            print("Apagué relé del brazo")
+
+
+        if self.thread_base_relay == True:
+            self.thread_base_relay = False
+            print("Apagaré relé de la base")
+            txt = "off_B"
+            msg = (txt+"\n").encode()
+            ESBR = threading.Thread(
+                target=self.serial2Write, name="EmergencyStopBaseRelay",args=(msg,))
+            ESBR.setDaemon(True)
+            ESBR.start()  
+            print("Apagué relé de la base")
 
     def SerialWriterBase(self):
         if not self.gcodeBase.has('F'):
@@ -1152,14 +1254,9 @@ class GUI3Dbot:
         msg = str(msg)+'\n'
         self.txt_base_terminal.insert(tk.END, msg)
         self.txt_base_terminal.see(tk.END)
-        try:
-            self.serial_port2.write(msg.encode('utf-8'))
-        except:
-            pass
-        while self.okAlertBase != True:
-            if self.stop_threads == True:
-                return
-        self.okAlertBase = False
+        msg = msg.encode('utf-8')
+
+        self.serial2Write(msg)
 
     def linearMovement(self, x, y, velocity):
         # Performs linear movements.
@@ -1272,6 +1369,18 @@ class GUI3Dbot:
         self.btbase = False
         self.hotend_thread_state = False
 
+        if hasattr(self, 'thread_arm_relay'):
+            if self.thread_arm_relay != True:
+                self.thread_arm_relay = False
+        else:
+            self.thread_arm_relay = False
+
+        if hasattr(self, 'thread_base_relay'):
+            if self.thread_base_relay != True: 
+                self.thread_base_relay = False
+        else:          
+            self.thread_base_relay = False
+
         self.progress = tk.DoubleVar()
 
     def __init__(self):
@@ -1292,7 +1401,7 @@ class GUI3Dbot:
         frm_firstrow = tk.Frame(
             self.window, relief=tk.RAISED, bd=2, bg="white")
         frm_firstrow.grid(row=0, column=0, sticky="nsew")
-        frm_firstrow.columnconfigure(4, minsize=1, weight=1)
+        frm_firstrow.columnconfigure(6, minsize=1, weight=1)
 
         imagen = Image.open("Imagenes_3Dbot_software/open.png")
         imagen = imagen.resize((30, 30), Image.ANTIALIAS)
@@ -1311,13 +1420,38 @@ class GUI3Dbot:
         img_boton_open3 = ImageTk.PhotoImage(imagen)
         self.btn_conect_arm = tk.Button(frm_firstrow, text="Conect Arm", image=img_boton_open3, compound=tk.TOP, command=self.connectArm, border=0, bg="white",
                                         font=('Calibri Light', 10, 'normal'), width=60)
+        
+        imagen = Image.open("Imagenes_3Dbot_software/off.png")
+        imagen = imagen.resize((30, 30), Image.ANTIALIAS)
+        self.img_boton_open29 = ImageTk.PhotoImage(imagen)
+        imagen = Image.open("Imagenes_3Dbot_software/on.png")
+        imagen = imagen.resize((30, 30), Image.ANTIALIAS)
+        self.img_boton_open30 = ImageTk.PhotoImage(imagen)
+        self.btn_switch_arm = tk.Button(frm_firstrow, text="Off Arm", image=self.img_boton_open29, compound=tk.TOP, command=self.switchArm, border=0, bg="white",
+                                             font=('Calibri Light', 10, 'normal'), width=60)      
 
         imagen = Image.open("Imagenes_3Dbot_software/base.png")
         imagen = imagen.resize((30, 30), Image.ANTIALIAS)
         img_boton_open4 = ImageTk.PhotoImage(imagen)
         self.btn_conect_base = tk.Button(frm_firstrow, text="Conect Base", image=img_boton_open4, compound=tk.TOP, command=self.connectBase, border=0, bg="white",
                                          font=('Calibri Light', 10, 'normal'), width=60)
-
+        
+        imagen = Image.open("Imagenes_3Dbot_software/off.png")
+        imagen = imagen.resize((30, 30), Image.ANTIALIAS)
+        self.img_boton_open31 = ImageTk.PhotoImage(imagen)
+        imagen = Image.open("Imagenes_3Dbot_software/on.png")
+        imagen = imagen.resize((30, 30), Image.ANTIALIAS)
+        self.img_boton_open32 = ImageTk.PhotoImage(imagen)
+        self.btn_switch_base = tk.Button(frm_firstrow, text="Off Base", image=self.img_boton_open31, compound=tk.TOP, command=self.switchBase, border=0, bg="white",
+                                             font=('Calibri Light', 10, 'normal'), width=60)
+        
+        imagen = Image.open("Imagenes_3Dbot_software/print.png")
+        imagen = imagen.resize((30, 30), Image.ANTIALIAS)
+        img_boton_open26 = ImageTk.PhotoImage(imagen)
+        self.btn_print = tk.Button(frm_firstrow, text="Start Print", image=img_boton_open26, compound=tk.TOP, command=self.startprint, border=0, bg="white",
+                                   font=('Calibri Light', 10, 'normal'), width=60)
+        
+         
         imagen = Image.open("Imagenes_3Dbot_software/post.png")
         imagen = imagen.resize((30, 30), Image.ANTIALIAS)
         img_boton_open28 = ImageTk.PhotoImage(imagen)
@@ -1336,24 +1470,21 @@ class GUI3Dbot:
         self.btn_emergency_stop = tk.Button(frm_firstrow, text="Emergency Stop", image=img_boton_open25, compound=tk.TOP, command=self.emergencyStop, border=0, bg="white",
                                             font=('Calibri Light', 10, 'normal'), width=90)
 
-        imagen = Image.open("Imagenes_3Dbot_software/print.png")
-        imagen = imagen.resize((30, 30), Image.ANTIALIAS)
-        img_boton_open26 = ImageTk.PhotoImage(imagen)
-        self.btn_print = tk.Button(frm_firstrow, text="Start Print", image=img_boton_open26, compound=tk.TOP, command=self.startprint, border=0, bg="white",
-                                   font=('Calibri Light', 10, 'normal'), width=60)
+
 
         self.btn_open.grid(row=0, column=0, sticky="w", padx=5, pady=8)
         self.btn_save.grid(row=0, column=1, sticky="w", padx=5)
         self.btn_conect_arm.grid(row=0, column=2, sticky="w", padx=5)
-        self.btn_conect_base.grid(row=0, column=3, sticky="w", padx=5)
-        self.btn_print.grid(row=0, column=4, sticky="w", padx=5)
-        self.btn_post_processing.grid(row=0, column=5, sticky="e", padx=255)
-        self.btn_conection_config.grid(row=0, column=5, sticky="e", padx=130)
-        self.btn_emergency_stop.grid(row=0, column=5, sticky="e", padx=5)
+        self.btn_switch_arm.grid(row=0, column=3, sticky="w", padx=0)
+        self.btn_conect_base.grid(row=0, column=4, sticky="w", padx=5)
+        self.btn_switch_base.grid(row=0, column=5, sticky="w", padx=0)
+        self.btn_print.grid(row=0, column=6, sticky="w", padx=5)     
+        self.btn_post_processing.grid(row=0, column=7, sticky="e", padx=255)
+        self.btn_conection_config.grid(row=0, column=7, sticky="e", padx=130)
+        self.btn_emergency_stop.grid(row=0, column=7, sticky="e", padx=5)
 
-        self.frm_progress = tk.Frame(
-            frm_firstrow, relief=tk.FLAT, bd=2, bg="white")
-        self.frm_progress.grid(row=0, column=4, sticky="wns", padx=100)
+        self.frm_progress = tk.Frame(frm_firstrow, relief=tk.FLAT, bd=2, bg="white")
+        self.frm_progress.grid(row=0, column=6, sticky="wns", padx=100)
         self.frm_progress.columnconfigure(2, minsize=1, weight=1)
 
         self.progress_bar = ttk.Progressbar(

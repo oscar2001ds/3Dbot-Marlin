@@ -78,7 +78,7 @@
 
 #if ENABLED(X_SCARA)
   // If movement is choppy try lowering this value
-  #define SCARA_SEGMENTS_PER_SECOND 30
+  #define SCARA_SEGMENTS_PER_SECOND 160
 
   /**
    * Before raising this value, use M665 S[seg_per_sec] to decrease
@@ -110,6 +110,10 @@
   // maximum axis length.
   #define X_MAX_LENGTH 300
   #define Y_MAX_LENGTH 300
+  
+  // Retraction angle for each joint after touching the Endstop
+  #define RETRACTION_X_ANGLE_IN_HOMING 35
+  #define RETRACTION_Y_ANGLE_IN_HOMING 89.5
 
 #endif
 
@@ -689,11 +693,11 @@
 // Specify here all the endstop connectors that are connected to any endstop or probe.
 // Almost all printers will be using one per axis. Probes will use one or more of the
 // extra connectors. Leave undefined any used for non-endstop and non-probe purposes.
-#define USE_XMIN_PLUG
-#define USE_YMIN_PLUG
+//#define USE_XMIN_PLUG
+//#define USE_YMIN_PLUG
 #define USE_ZMIN_PLUG
-//#define USE_XMAX_PLUG
-//#define USE_YMAX_PLUG
+#define USE_XMAX_PLUG
+#define USE_YMAX_PLUG
 //#define USE_ZMAX_PLUG
 
 // Enable pullup for all endstops to prevent a floating state
@@ -726,9 +730,9 @@
 #define X_MIN_ENDSTOP_INVERTING true // Set to true to invert the logic of the endstop.
 #define Y_MIN_ENDSTOP_INVERTING true // Set to true to invert the logic of the endstop.
 #define Z_MIN_ENDSTOP_INVERTING true // Set to true to invert the logic of the endstop.
-#define X_MAX_ENDSTOP_INVERTING false // Set to true to invert the logic of the endstop.
-#define Y_MAX_ENDSTOP_INVERTING false // Set to true to invert the logic of the endstop.
-#define Z_MAX_ENDSTOP_INVERTING false // Set to true to invert the logic of the endstop.
+#define X_MAX_ENDSTOP_INVERTING true // Set to true to invert the logic of the endstop.
+#define Y_MAX_ENDSTOP_INVERTING true // Set to true to invert the logic of the endstop.
+#define Z_MAX_ENDSTOP_INVERTING true // Set to true to invert the logic of the endstop.
 #define Z_MIN_PROBE_ENDSTOP_INVERTING true // Set to true to invert the logic of the probe.
 
 /**
@@ -815,6 +819,8 @@
  * Z - uses 400 steps/mm for moving Z (with 16 microsteps)
  * E - adjust according to your extruder (93 is for MK8 extruder)
  */
+
+//#define DEFAULT_AXIS_STEPS_PER_UNIT   { 26.6667, 80, 1600, 185.1984792}
 #define DEFAULT_AXIS_STEPS_PER_UNIT   { 53.333333, 160, 1600, 185.1984792}
 #define X_SCARA_ELBOW_CROSSTALK_RATIO 3  // 60 % 20 = 3}
 
@@ -1142,9 +1148,15 @@
 // @section machine
 
 // Invert the stepper direction. Change (or reverse the motor connector) if an axis goes the wrong way.
-#define INVERT_X_DIR false
-#define INVERT_Y_DIR true
-#define INVERT_Z_DIR false
+// Right arm
+#define INVERT_X_DIR true
+#define INVERT_Y_DIR false
+#define INVERT_Z_DIR true
+
+// Left arm
+// #define INVERT_X_DIR false
+// #define INVERT_Y_DIR true
+// #define INVERT_Z_DIR true
 
 // @section extruder
 
@@ -1171,8 +1183,8 @@
 
 // Direction of endstops when homing; 1=MAX, -1=MIN
 // :[-1,1]
-#define X_HOME_DIR -1
-#define Y_HOME_DIR -1
+#define X_HOME_DIR 1
+#define Y_HOME_DIR 1
 #define Z_HOME_DIR -1
 
 // @section machine
@@ -1188,7 +1200,7 @@
 #define X_MAX_POS (X_MIN_POS + X_BED_SIZE)
 #define Y_MAX_POS (Y_MIN_POS + Y_BED_SIZE)
 #define Z_MAX_POS 100
-
+ 
 // // The size of the print bed
 // #define X_BED_SIZE 80
 // #define Y_BED_SIZE 80

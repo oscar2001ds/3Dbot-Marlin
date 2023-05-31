@@ -747,15 +747,16 @@
  *          TMC5130, TMC5130_STANDALONE, TMC5160, TMC5160_STANDALONE
  * :['A4988', 'A5984', 'DRV8825', 'LV8729', 'L6470', 'L6474', 'POWERSTEP01', 'TB6560', 'TB6600', 'TMC2100', 'TMC2130', 'TMC2130_STANDALONE', 'TMC2160', 'TMC2160_STANDALONE', 'TMC2208', 'TMC2208_STANDALONE', 'TMC2209', 'TMC2209_STANDALONE', 'TMC26X', 'TMC26X_STANDALONE', 'TMC2660', 'TMC2660_STANDALONE', 'TMC5130', 'TMC5130_STANDALONE', 'TMC5160', 'TMC5160_STANDALONE']
  */
-#define X_DRIVER_TYPE  LV8729
-#define Y_DRIVER_TYPE  LV8729
-#define Z_DRIVER_TYPE  A4988
+
+#define X_DRIVER_TYPE  DRV8825
+#define Y_DRIVER_TYPE  DRV8825
+#define Z_DRIVER_TYPE  DRV8825
 //#define X2_DRIVER_TYPE A4988
 //#define Y2_DRIVER_TYPE A4988
 //#define Z2_DRIVER_TYPE A4988
 //#define Z3_DRIVER_TYPE A4988
 //#define Z4_DRIVER_TYPE A4988
-//#define E0_DRIVER_TYPE A4988
+#define E0_DRIVER_TYPE DRV8825
 //#define E1_DRIVER_TYPE A4988
 //#define E2_DRIVER_TYPE A4988
 //#define E3_DRIVER_TYPE A4988
@@ -815,7 +816,8 @@
  * Z - uses 400 steps/mm for moving Z (with 16 microsteps)
  * E - adjust according to your extruder (93 is for MK8 extruder)
  */
-#define DEFAULT_AXIS_STEPS_PER_UNIT   { 26.666666666666667, 80, 400, 418.5 }
+//#define DEFAULT_AXIS_STEPS_PER_UNIT   { 26.6667, 80, 1600, 185.1984792}
+#define DEFAULT_AXIS_STEPS_PER_UNIT   { 53.333333, 160, 1600, 185.1984792}
 #define X_SCARA_ELBOW_CROSSTALK_RATIO 3  // 60 % 20 = 3}
 
 /**
@@ -1142,8 +1144,8 @@
 // @section machine
 
 // Invert the stepper direction. Change (or reverse the motor connector) if an axis goes the wrong way.
-#define INVERT_X_DIR false
-#define INVERT_Y_DIR true
+#define INVERT_X_DIR true
+#define INVERT_Y_DIR false
 #define INVERT_Z_DIR false
 
 // @section extruder

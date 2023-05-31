@@ -116,7 +116,7 @@ void scara_set_axis_is_at_home(const AxisEnum axis) {
     if (axis == X_AXIS) {
       X_SCARA_DEBUG_LNPAIR("[home] shoulder hit endstop, moving it to home");
 
-      current_position.x = -90 - scara_home_offset.a;
+      current_position.x = RETRACTION_X_ANGLE_IN_HOMING - scara_home_offset.a;
       sync_plan_position();
 
       do_blocking_move_to_x(0, homing_feedrate(axis) * 3/2);
@@ -124,7 +124,7 @@ void scara_set_axis_is_at_home(const AxisEnum axis) {
     } else if (axis == Y_AXIS) {
       X_SCARA_DEBUG_LNPAIR("[home] elbow hit endstop, moving it to home");
 
-      current_position.y = -90 - scara_home_offset.b;
+      current_position.y = RETRACTION_Y_ANGLE_IN_HOMING - scara_home_offset.b;
       sync_plan_position();
 
       do_blocking_move_to_y(0, homing_feedrate(axis) * 3/2);
@@ -132,7 +132,7 @@ void scara_set_axis_is_at_home(const AxisEnum axis) {
       if (old_mode != X_SCARA_COORDINATES_LOCK_XY) {
         X_SCARA_DEBUG_LNPAIR("[home] moving to origin");
         x_scara_change_coordinates_mode(X_SCARA_COORDINATES_CARTESIAN);
-        do_blocking_move_to_xy(0, 0, homing_feedrate(axis) * 3/2);
+        do_blocking_move_to_xy(0, 86, homing_feedrate(axis) * 3/2);
       }
     }
 
@@ -372,9 +372,19 @@ static FORCE_INLINE void x_scara_invk(const xyz_pos_t &raw) {
     float E =              ACOS((x2y2 - PK_SumLenSq   )/(PK_ProdOfLen)) + S/X_SCARA_ELBOW_CROSSTALK_RATIO;
 
     delta.set(DEGREES(S), DEGREES(E), raw.z);
-
     X_SCARA_DEBUG_LNPAIR(
       "INVK X:",raw.x," Y:", raw.y, " -> S:", DEGREES(S)," E:", DEGREES(E));
+
+
+    // const float x = - (raw.x - scara_offset.x), y = (raw.y - scara_offset.y), c = HYPOT(x, y),
+    //             THETA3 = ATAN2(y, x),
+    //             THETA1 = THETA3 + ACOS((sq(c) + sq(L1) - sq(L2)) / (2.0f * c * L1)),
+    //             THETA2 = (THETA3 - ACOS((sq(c) + sq(L2) - sq(L1)) / (2.0f * c * L2)))*X_SCARA_ELBOW_CROSSTALK_RATIO;
+
+    // delta.set(DEGREES(THETA1), DEGREES(THETA2), raw.z);
+    // X_SCARA_DEBUG_LNPAIR(
+    //   "INVK X:",raw.x," Y:", raw.y, " -> THETA1:", DEGREES(THETA1)," THETA2:", DEGREES(THETA2));
+
 }
 
 /* move joints to the given angular position */

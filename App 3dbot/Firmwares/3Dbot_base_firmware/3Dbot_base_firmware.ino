@@ -31,7 +31,8 @@
 //#define E2_ENDSTOP         18 
 
 
-
+#define powerPinPlatform 6
+#define powerPinArm 11
 
 // Define stepper motors connection pins (Type:driver, STEP, DIR).
 AccelStepper LeftFrontWheel(1, E_STEP_PIN, E_DIR_PIN);  // Stepper1
@@ -41,7 +42,7 @@ AccelStepper RightFrontWheel(1, X_STEP_PIN, X_DIR_PIN); // Stepper4
 
 // Global variables.
 int wheelSpeed = 0, contseg = 0, cont = 1, load = 0;
-int r = 42;                                                                 // Wheel radius.r
+int r = 52;                                                                 // Wheel radius.r
 
 float vX = 0, vY = 0, lt = 0, startTime = 0, vX_1, vY_1;                                    // Linear speed [m/s].
 float vA = 0;                                                               // Angular speed [rad/s].
@@ -96,6 +97,18 @@ void setup() {
   RightBackWheel.setMaxSpeed(15000);
   RightFrontWheel.setMaxSpeed(15000);
 
+  LeftFrontWheel.setAcceleration(100);
+  LeftBackWheel.setAcceleration(100);
+  RightBackWheel.setAcceleration(100);
+  RightFrontWheel.setAcceleration(100);
+
+  pinMode(powerPinPlatform, OUTPUT);
+  pinMode(powerPinArm, OUTPUT);
+
+  digitalWrite(powerPinPlatform, HIGH);
+  digitalWrite(powerPinArm, LOW);
+  
+
 }
 
 void loop() {
@@ -105,6 +118,29 @@ void serialEvent() {
   while (Serial.available()) {
     json = Serial.readStringUntil('\n');//Se envía en el serial así:
     //{"vX":333,"vY":333,"lt":333}
+
+    if(json == "on_A"){
+      digitalWrite(powerPinArm, HIGH);
+      Serial.print("ok\n");
+      return;
+    }
+    else if(json == "on_B"){
+      digitalWrite(powerPinPlatform, LOW);
+      Serial.print("ok\n");
+      return;
+    }
+    else if(json == "off_A"){
+      digitalWrite(powerPinArm, LOW);
+      Serial.print("ok\n");
+      return;
+    }
+    else if(json == "off_B"){
+      digitalWrite(powerPinPlatform, HIGH);
+      Serial.print("ok\n");
+      return;
+    }    
+
+
     DeserializationError error = deserializeJson(doc, json);
     if (error) {
       Serial.print(F("deserializeJson() failed: "));
