@@ -1,0 +1,33 @@
+BLtouch
+	M280 P0 S10 ; despliega el pin
+	M280 P0 S90 ; recoge el pin
+	M280 P0 S120 ; Autotest – despliega y recoge el pin hasta que ponemos el dedo o lanzamos el comando posterior
+	M280 P0 S160 ; Elimina estado ALARMA
+
+Scara 	
+	M360 M0 ; cartesian mode
+	M360 M1 ; angular mode
+	M360 M2 ; probe mode
+	
+	M362 E0 S0; Complement of G92 set the value of the joints	
+
+	G29 L-45 R45 F45 B-45 V4
+
+General commands
+	UBL:
+		G29 A ; Activate the UBL System.
+		G29 P1 ; auto bed leveleing UBL
+		G29 S1 ; saves the bed topology (using S1, S2, S3, etc.)
+		G29 L1 ; Loads mesh #1 for the current print job. (L1, L2, L3, etc)
+	BILINEAR:
+		G29 ;repetedly
+		G29 W1 I1 J1 Z1.0; Changue the point (1,1) to Z=1.0 // I= columns  J=rows 
+	
+	G92 X0 Y0; set current position as zero
+	
+	M420 V; see Mesh
+	M420 S1 ; to enable your last-saved mesh
+	M500 ; Saves settings to EEPROM for future use
+
+	M106 Sx start fan. M106  (x number betwen 0 and 255).
+	M107 Stop fan
